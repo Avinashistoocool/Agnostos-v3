@@ -1,0 +1,7 @@
+.git
+.env
+data/
+output/
+**/__pycache__
+*.xlsx
+*.pdf

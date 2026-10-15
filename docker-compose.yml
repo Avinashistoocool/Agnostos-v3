@@ -1,0 +1,23 @@
+services:
+  agnostos:
+    build: .
+    restart: unless-stopped
+    environment:
+      # Generate once: python -c "from cryptography.fernet import Fernet;print(Fernet.generate_key().decode())"
+      APP_SECRET: ${APP_SECRET}
+      TZ: ${TZ:-Asia/Kolkata}
+    volumes:
+      - agnostos-data:/data
+    ports:
+      - "127.0.0.1:8000:8000"
+
+  # Free HTTPS without opening ports: https://one.dash.cloudflare.com -> Tunnels
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on: [agnostos]
+    profiles: [tunnel]
+
+volumes:
+  agnostos-data:

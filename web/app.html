@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agnostos · app</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Reenie+Beanie&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = { theme: { extend: {
+  colors: { cream: '#FDFCF8', sage: '#E8EFE8', lavender: '#EFEDF4', coral: '#FFB7B2', ink: '#292524', muted: '#78716C' },
+  fontFamily: { sans: ['Outfit', 'sans-serif'], hand: ['"Reenie Beanie"', 'cursive'] } } } }
+</script>
+<link rel="stylesheet" href="/softly.css">
+</head>
+<body class="bg-cream text-ink font-sans antialiased">
+<div class="grain" aria-hidden="true"></div>
+
+<nav class="sticky top-4 z-40 mx-auto w-[calc(100%-32px)] max-w-5xl bg-white/70 backdrop-blur-[20px] rounded-full shadow-soft flex items-center justify-between pl-3 pr-2 py-2 mt-4">
+  <a href="/" class="flex items-center gap-2"><span class="w-8 h-8 rounded-full bg-coral grid place-items-center"><span class="w-2.5 h-2.5 rounded-full bg-white"></span></span><span class="font-medium">agnostos</span></a>
+  <div id="tabs" class="hidden gap-1 text-[14px] font-medium"></div>
+  <button id="logout" class="hidden bg-ink text-cream text-[14px] rounded-full px-4 py-2">Sign out</button>
+</nav>
+
+<main class="max-w-5xl mx-auto px-4 py-10">
+  <!-- Auth -->
+  <section id="auth" class="max-w-md mx-auto card p-8 mt-10 reveal in">
+    <h1 class="text-4xl font-medium tracking-tight">Hello <span class="font-hand text-coral text-5xl">again</span></h1>
+    <p class="text-muted mt-2">Sign in or create an account.</p>
+    <form id="auth-form" class="mt-6 space-y-3">
+      <input class="field" type="email" name="email" placeholder="email" required>
+      <input class="field" type="password" name="password" placeholder="password (8+ chars)" minlength="8" required>
+      <div class="flex gap-2 pt-2">
+        <button class="pill bg-ink text-cream flex-1" data-mode="login">Sign in</button>
+        <button class="pill bg-coral flex-1" data-mode="signup">Create account</button>
+      </div>
+      <p id="auth-msg" class="text-sm text-red-500 h-5"></p>
+    </form>
+  </section>
+
+  <div id="app" class="hidden space-y-6">
+    <!-- Overview -->
+    <section data-tab="Overview" class="space-y-6">
+      <div class="grid grid-cols-2 sm:grid-cols-5 gap-3" id="kpis"></div>
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="card p-6"><h3 class="font-medium">Send status</h3><div id="send-break" class="mt-3 text-sm space-y-1"></div></div>
+        <div class="card p-6"><h3 class="font-medium">Why rows weren't drafted</h3><div id="llm-break" class="mt-3 text-sm space-y-1"></div></div>
+      </div>
+      <div class="card p-6 flex items-center justify-between gap-4 flex-wrap">
+        <div><h3 class="font-medium">Workbook</h3><p class="text-sm text-muted">Every professor, draft, status and reply.</p></div>
+        <button id="dl" class="pill bg-ink text-cream">Download .xlsx</button>
+      </div>
+    </section>
+
+    <!-- Setup -->
+    <section data-tab="Setup" class="space-y-6 hidden">
+      <div class="card p-6">
+        <h3 class="font-medium">Files</h3>
+        <div class="grid sm:grid-cols-3 gap-4 mt-4 text-sm" id="uploads"></div>
+      </div>
+      <form id="settings" class="card p-6 space-y-6">
+        <div id="settings-groups" class="space-y-6"></div>
+        <div class="flex gap-3 items-center"><button class="pill bg-ink text-cream">Save</button><span id="settings-msg" class="text-sm text-muted"></span></div>
+      </form>
+    </section>
+
+    <!-- Pipeline -->
+    <section data-tab="Pipeline" class="space-y-6 hidden">
+      <div class="grid md:grid-cols-2 gap-4" id="tools"></div>
+    </section>
+
+    <!-- Replies -->
+    <section data-tab="Replies" class="space-y-4 hidden">
+      <div class="card p-6 flex flex-wrap gap-3 items-center justify-between">
+        <div><h3 class="font-medium">Conversations</h3><p class="text-sm text-muted">Read every thread and draft the next message. Nothing sends until you approve it.</p></div>
+        <div class="flex gap-2">
+          <button class="pill bg-white border border-stone-200" data-run='{"command":"check-replies","options":{}}'>Check inbox</button>
+          <button class="pill bg-coral" data-run='{"command":"replies","options":{}}'>Draft replies</button>
+          <button class="pill bg-ink text-cream" data-run='{"command":"replies","options":{"send":true,"live":true}}' data-confirm="Send all approved replies now?">Send approved</button>
+        </div>
+      </div>
+      <div id="reply-list" class="space-y-4"></div>
+    </section>
+
+    <!-- Schedule -->
+    <section data-tab="Schedule" class="hidden">
+      <form id="schedule" class="card p-6 space-y-4 max-w-lg">
+        <h3 class="font-medium">Daily sending</h3>
+        <p class="text-sm text-muted">Weekdays only. Each run sends up to the limit, inside each professor's local hours, then stops.</p>
+        <label class="flex items-center gap-3"><input type="checkbox" name="enabled"> Enabled</label>
+        <label class="block text-sm">Start time (server time)<input class="field mt-1" name="time" value="12:30" pattern="\d{2}:\d{2}"></label>
+        <label class="block text-sm">Emails per day<input class="field mt-1" type="number" name="limit" value="40" min="1" max="200"></label>
+        <label class="block text-sm">Recipient-local window<input class="field mt-1" name="local_window" value="9-17"></label>
+        <button class="pill bg-ink text-cream">Save schedule</button> <span id="sched-msg" class="text-sm text-muted"></span>
+      </form>
+    </section>
+
+    <!-- Jobs (always visible) -->
+    <section class="card p-6">
+      <div class="flex justify-between items-center"><h3 class="font-medium">Jobs</h3><span class="font-hand text-2xl text-muted">live log</span></div>
+      <div class="grid md:grid-cols-[220px_1fr] gap-4 mt-4">
+        <ul id="jobs" class="text-sm space-y-1 max-h-80 overflow-auto"></ul>
+        <div>
+          <pre id="log" class="bg-stone-900 text-stone-100 rounded-2xl p-4 text-xs h-80 overflow-auto whitespace-pre-wrap">Pick a job.</pre>
+          <button id="cancel" class="pill bg-white border border-stone-200 mt-2 hidden text-sm">Cancel job</button>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+<script src="/app.js"></script>
+</body>
+</html>

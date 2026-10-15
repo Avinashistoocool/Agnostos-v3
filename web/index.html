@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agnostos: slow, honest research outreach</title>
+<meta name="description" content="Agnostos finds professors whose work matches yours, drafts honest emails, sends them gently, and helps you reply.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Reenie+Beanie&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: { extend: {
+    colors: { cream: '#FDFCF8', sage: '#E8EFE8', lavender: '#EFEDF4', coral: '#FFB7B2',
+              ink: '#292524', muted: '#78716C', rose: '#FFE4E1', lilac: '#E6E6FA' },
+    fontFamily: { sans: ['Outfit', 'sans-serif'], hand: ['"Reenie Beanie"', 'cursive'] },
+    boxShadow: { soft: '0 4px 20px -2px rgba(0,0,0,0.05)' },
+    letterSpacing: { tightish: '-0.025em' },
+  } }
+}
+</script>
+<link rel="stylesheet" href="/softly.css">
+</head>
+<body class="bg-cream text-ink font-sans antialiased overflow-x-hidden">
+
+<div class="grain" aria-hidden="true"></div>
+
+<!-- Nav -->
+<nav class="fixed top-4 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-32px)] max-w-3xl
+            bg-white/70 backdrop-blur-[20px] rounded-full shadow-soft border border-white/60
+            flex items-center justify-between pl-3 pr-2 py-2">
+  <a href="/" class="flex items-center gap-2">
+    <span class="w-8 h-8 rounded-full bg-coral grid place-items-center"><span class="w-2.5 h-2.5 rounded-full bg-white"></span></span>
+    <span class="font-medium tracking-tightish">agnostos</span>
+  </a>
+  <div class="hidden sm:flex gap-6 text-[14px] font-medium text-muted">
+    <a href="#how" class="hover:text-ink transition">How it works</a>
+    <a href="#inside" class="hover:text-ink transition">Inside</a>
+    <a href="#faq" class="hover:text-ink transition">FAQ</a>
+  </div>
+  <a href="/app.html" class="bg-ink text-cream text-[14px] font-medium rounded-full px-4 py-2 hover:scale-[1.03] transition">Open app</a>
+</nav>
+
+<!-- Hero -->
+<header class="relative min-h-[92vh] flex items-center justify-center text-center px-6 pt-28 pb-16">
+  <div class="blob bg-rose w-[22rem] h-[22rem] -top-10 -left-24 sm:left-[10%]"></div>
+  <div class="blob bg-lilac w-[24rem] h-[24rem] top-40 -right-24 sm:right-[8%]" style="animation-delay:-3s"></div>
+  <div class="relative max-w-3xl reveal">
+    <p class="inline-flex items-center gap-2 text-sm text-muted bg-white/70 rounded-full px-4 py-1.5 shadow-soft mb-8">
+      <span class="w-1.5 h-1.5 rounded-full bg-coral"></span> For students looking for a research summer
+    </p>
+    <h1 class="text-[48px] sm:text-[72px] leading-[1.02] font-medium tracking-tightish">
+      Write to professors <span class="font-hand text-coral text-[64px] sm:text-[96px] leading-none align-[-0.08em]">gently</span>, and actually hear back
+    </h1>
+    <p class="mt-6 text-lg text-muted max-w-[500px] mx-auto">
+      Agnostos reads your resume, finds people whose recent papers overlap with what you've built, drafts honest emails, sends them slowly from your own inbox, and helps you answer the replies.
+    </p>
+    <div class="mt-10 flex flex-col sm:flex-row gap-3 justify-center">
+      <a href="/app.html#signup" class="bg-coral text-ink font-medium rounded-full px-7 py-4 shadow-[0_10px_30px_-8px_rgba(255,183,178,0.9)] hover:-translate-y-0.5 transition">Start for free</a>
+      <a href="#how" class="bg-white text-ink font-medium rounded-full px-7 py-4 border border-stone-200 hover:bg-stone-50 transition">See how it works</a>
+    </div>
+  </div>
+</header>
+
+<!-- Scenarios -->
+<section id="how" class="py-16">
+  <div class="px-6 max-w-5xl mx-auto reveal">
+    <h2 class="text-[40px] sm:text-[56px] font-medium tracking-tightish leading-tight">A slow week, <span class="font-hand text-[56px] sm:text-[72px] text-muted">on autopilot</span></h2>
+    <p class="text-muted mt-3 max-w-[500px]">Nothing frantic. A few honest emails a day, at hours the professors are actually awake.</p>
+  </div>
+  <div class="mt-10 flex gap-4 overflow-x-auto snap-x snap-mandatory px-6 pb-6 no-scrollbar">
+    <article class="scenario"><p class="time">Mon, 09:12</p><p class="txt">Found 412 professors who published on jet tagging since 2021</p></article>
+    <article class="scenario"><p class="time">Mon, 09:40</p><p class="txt">Checked every address against their own university page</p></article>
+    <article class="scenario"><p class="time">Mon, 10:05</p><p class="txt">Drafted 300 emails that mention one real paper each</p></article>
+    <article class="scenario"><p class="time">Tue, 09:30 CET</p><p class="txt">Sent 40, five to ten minutes apart, inside their morning</p></article>
+    <article class="scenario"><p class="time">Wed, 14:02</p><p class="txt">Prof. Cueto replied; a kind thank-you is ready for you</p></article>
+    <article class="scenario"><p class="time">Fri, 18:00</p><p class="txt">47 sent, 4 replies, 1 bounce. All logged</p></article>
+  </div>
+</section>
+
+<!-- App preview -->
+<section id="inside" class="py-20 px-6 overflow-hidden">
+  <div class="max-w-5xl mx-auto text-center reveal">
+    <h2 class="text-[40px] sm:text-[56px] font-medium tracking-tightish leading-tight">Breathe. The inbox is <span class="font-hand text-coral text-[56px] sm:text-[72px]">handled</span></h2>
+    <p class="text-muted mt-3 max-w-[500px] mx-auto">Three quiet screens: your matches, the send queue, and replies waiting on you.</p>
+  </div>
+  <div class="relative mt-16 flex justify-center items-start gap-0 sm:gap-6 reveal">
+    <div class="phone side hidden md:block bg-sage translate-y-12">
+      <p class="label">Matches</p>
+      <div class="space-y-3 mt-6">
+        <div class="row"><b>78%</b> Gregor Kasieczka<br><span>Hamburg · jet tagging</span></div>
+        <div class="row"><b>77%</b> Tobias Golling<br><span>Geneva · generative sims</span></div>
+        <div class="row"><b>74%</b> Davide Bacciu<br><span>Pisa · graph learning</span></div>
+        <div class="row"><b>72%</b> Lorenzo Rosasco<br><span>IIT · kernels</span></div>
+      </div>
+    </div>
+    <div class="phone center bg-white z-10">
+      <p class="label">Today</p>
+      <p class="text-[40px] font-medium tracking-tightish mt-6 leading-none">12 <span class="text-muted text-lg">of 40 sent</span></p>
+      <p class="text-muted text-sm mt-2">next one in 6 min · CET morning</p>
+      <div class="flex-1 grid place-items-center">
+        <button class="breathe" type="button" aria-label="Breathe">Breathe</button>
+      </div>
+      <p class="font-hand text-2xl text-muted text-center">you don't have to watch it</p>
+    </div>
+    <div class="phone side hidden md:block bg-lavender translate-y-24">
+      <p class="label">Replies</p>
+      <div class="space-y-3 mt-6">
+        <div class="row">Elías Cueto<br><span>"places are filled this summer…"</span></div>
+        <div class="row">Matthias Schott<br><span>"no internships in my group…"</span></div>
+        <div class="row bg-coral/40">Thank-you drafted<br><span>tap to review & send</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Testimonials -->
+<section class="py-20 px-6">
+  <div class="max-w-5xl mx-auto">
+    <h2 class="text-[40px] sm:text-[56px] font-medium tracking-tightish reveal">From the <span class="font-hand text-[56px] sm:text-[72px] text-muted">diary</span></h2>
+    <div class="grid md:grid-cols-2 gap-6 mt-10">
+      <figure class="note rotate-[-1deg] reveal">
+        <blockquote>I'd been putting this off for a month because writing each email took an hour. It drafted something I wasn't embarrassed to send, and it didn't make up results I don't have.</blockquote>
+        <figcaption><span></span>second-year, physics</figcaption>
+      </figure>
+      <figure class="note rotate-[1deg] reveal">
+        <blockquote>The best part is the replies. Even the polite no's got a short, kind answer asking who else might take a student. One of those turned into a call.</blockquote>
+        <figcaption><span></span>third-year, CS</figcaption>
+      </figure>
+      <figure class="note rotate-[1deg] reveal">
+        <blockquote>It sends at 9am their time, not 3am mine. My university mail stopped throttling me once it slowed down.</blockquote>
+        <figcaption><span></span>exchange student</figcaption>
+      </figure>
+      <figure class="note rotate-[-1deg] reveal">
+        <blockquote>I check one number in the evening: sent, replied, bounced. That's it. Very calm.</blockquote>
+        <figcaption><span></span>first-year, maths</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq" class="py-20 px-6">
+  <div class="max-w-2xl mx-auto">
+    <h2 class="text-[40px] sm:text-[56px] font-medium tracking-tightish reveal">Questions</h2>
+    <div class="mt-8 space-y-3" id="faq-list"></div>
+  </div>
+</section>
+
+<!-- Waitlist -->
+<section class="relative py-28 px-6 overflow-hidden">
+  <div class="blob bg-rose w-[26rem] h-[26rem] -left-20 top-0"></div>
+  <div class="blob bg-sage w-[22rem] h-[22rem] right-0 bottom-0" style="animation-delay:-2s"></div>
+  <div class="relative max-w-xl mx-auto text-center bg-white/70 backdrop-blur-xl rounded-[3rem] shadow-soft px-6 py-14 reveal">
+    <div class="w-14 h-14 mx-auto rounded-2xl bg-ink grid place-items-center"><span class="w-3 h-3 rounded-full bg-coral"></span></div>
+    <h2 class="mt-6 text-[36px] sm:text-[48px] font-medium tracking-tightish leading-tight">Get on the <span class="font-hand text-coral text-[48px] sm:text-[64px]">quiet</span> list</h2>
+    <p class="text-muted mt-3">We're opening seats slowly so the shared mail and model budgets stay healthy.</p>
+    <form id="waitlist" class="mt-8 flex flex-col sm:flex-row gap-3">
+      <input type="email" required placeholder="you@university.edu"
+             class="flex-1 rounded-full bg-stone-50 border border-stone-200 px-6 py-4 outline-none focus:ring-2 focus:ring-coral">
+      <button class="rounded-full bg-ink text-cream font-medium px-7 py-4 hover:scale-105 transition">Join</button>
+    </form>
+    <p id="waitlist-msg" class="mt-4 text-sm text-muted h-5"></p>
+  </div>
+</section>
+
+<footer class="px-6 pb-12 text-center text-sm text-muted">
+  <p>Agnostos · open source · <a class="underline" href="https://github.com/Avinashistoocool/Agnostos-v3">GitHub</a></p>
+</footer>
+
+<script src="/softly.js"></script>
+</body>
+</html>
