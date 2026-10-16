@@ -3,8 +3,65 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Agnostos: slow, honest research outreach</title>
-<meta name="description" content="Agnostos finds professors whose work matches yours, drafts honest emails, sends them gently, and helps you reply.">
+<title>Agnostos: AI research internship outreach to professors</title>
+<meta name="description" content="Agnostos is an open-source tool that finds professors whose research matches your resume, drafts honest cold emails, sends them at a gentle pace from your own inbox, and helps you reply.">
+<link rel="canonical" href="https://agnostos.app/">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta name="theme-color" content="#FDFCF8">
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Agnostos">
+<meta property="og:title" content="Agnostos: write to professors gently, and actually hear back">
+<meta property="og:description" content="Find matching professors, draft honest emails, send them slowly from your own inbox, and answer replies. Open source.">
+<meta property="og:url" content="https://agnostos.app/">
+<meta property="og:image" content="https://agnostos.app/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Agnostos: AI research internship outreach">
+<meta name="twitter:description" content="Find matching professors, draft honest emails, send them slowly, and answer replies.">
+<meta name="twitter:image" content="https://agnostos.app/og.png">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://agnostos.app/#org",
+      "name": "Agnostos",
+      "url": "https://agnostos.app/",
+      "logo": "https://agnostos.app/apple-touch-icon.png",
+      "sameAs": [
+        "https://github.com/Avinashistoocool/Agnostos-v2",
+        "https://github.com/Avinashistoocool/Agnostos-v3"
+      ]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://agnostos.app/#site",
+      "name": "Agnostos",
+      "alternateName": ["Agnostos outreach", "Agnostos research outreach"],
+      "url": "https://agnostos.app/",
+      "publisher": { "@id": "https://agnostos.app/#org" }
+    },
+    {
+      "@type": "SoftwareApplication",
+      "name": "Agnostos",
+      "applicationCategory": "EducationalApplication",
+      "operatingSystem": "Windows, macOS, Linux, Web",
+      "description": "Open-source research internship outreach: finds professors whose papers match your resume, drafts honest cold emails, sends them paced from your own mailbox, and drafts follow-up replies.",
+      "url": "https://agnostos.app/",
+      "downloadUrl": "https://github.com/Avinashistoocool/Agnostos-v2",
+      "author": { "@type": "Person", "name": "Avinash Chandra Gupta" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+    }
+  ]
+}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Reenie+Beanie&display=swap" rel="stylesheet">
@@ -21,6 +78,70 @@ tailwind.config = {
 }
 </script>
 <link rel="stylesheet" href="/softly.css">
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@type": "FAQPage",
+ "mainEntity": [
+  {
+   "@type": "Question",
+   "name": "What is Agnostos?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "Agnostos is a free, open-source research internship outreach tool. It reads your resume, finds professors whose recent papers overlap with your work, drafts one honest email per professor, sends them slowly from your own inbox, and helps you answer replies."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "Does it send from my own email?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "Yes. You connect your university or Gmail account with an app password. Mail goes out from your address, and replies land in your normal inbox."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "Will it invent achievements?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "No. Drafts are told to describe what you built and tried, never results you don't have. Anything it can't know is left as [FILL] for you."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "How many emails a day?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "Forty by default, five to ten minutes apart, only between 9 and 5 in each professor's own time zone, on weekdays. You can lower it."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "What does it cost?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "The app is free. Drafting uses your own model key (Groq is free; OpenAI gpt-5-mini costs about half a cent per email)."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "Can I read emails before they go?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "Always. Send review copies to yourself, export .eml files, or approve replies one by one before anything leaves."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "Is my password safe?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "Credentials are encrypted at rest on the server and are only handed to your own sending job. You can delete them at any time."
+   }
+  }
+ ]
+}
+</script>
 </head>
 <body class="bg-cream text-ink font-sans antialiased overflow-x-hidden">
 
@@ -51,7 +172,7 @@ tailwind.config = {
       <span class="w-1.5 h-1.5 rounded-full bg-coral"></span> For students looking for a research summer
     </p>
     <h1 class="text-[48px] sm:text-[72px] leading-[1.02] font-medium tracking-tightish">
-      Write to professors <span class="font-hand text-coral text-[64px] sm:text-[96px] leading-none align-[-0.08em]">gently</span>, and actually hear back
+      Agnostos: write to professors <span class="font-hand text-coral text-[64px] sm:text-[96px] leading-none align-[-0.08em]">gently</span>, and actually hear back
     </h1>
     <p class="mt-6 text-lg text-muted max-w-[500px] mx-auto">
       Agnostos reads your resume, finds people whose recent papers overlap with what you've built, drafts honest emails, sends them slowly from your own inbox, and helps you answer the replies.
@@ -143,8 +264,23 @@ tailwind.config = {
 <!-- FAQ -->
 <section id="faq" class="py-20 px-6">
   <div class="max-w-2xl mx-auto">
-    <h2 class="text-[40px] sm:text-[56px] font-medium tracking-tightish reveal">Questions</h2>
-    <div class="mt-8 space-y-3" id="faq-list"></div>
+    <h2 class="text-[40px] sm:text-[56px] font-medium tracking-tightish reveal">Questions about Agnostos</h2>
+    <div class="mt-8 space-y-3" id="faq-list">
+      <div class="faq reveal"><button type="button" aria-expanded="false"><span>What is Agnostos?</span><span class="icon">+</span></button>
+      <div class="body"><div><p>Agnostos is a free, open-source research internship outreach tool. It reads your resume, finds professors whose recent papers overlap with your work, drafts one honest email per professor, sends them slowly from your own inbox, and helps you answer replies.</p></div></div></div>
+      <div class="faq reveal"><button type="button" aria-expanded="false"><span>Does it send from my own email?</span><span class="icon">+</span></button>
+      <div class="body"><div><p>Yes. You connect your university or Gmail account with an app password. Mail goes out from your address, and replies land in your normal inbox.</p></div></div></div>
+      <div class="faq reveal"><button type="button" aria-expanded="false"><span>Will it invent achievements?</span><span class="icon">+</span></button>
+      <div class="body"><div><p>No. Drafts are told to describe what you built and tried, never results you don&#x27;t have. Anything it can&#x27;t know is left as [FILL] for you.</p></div></div></div>
+      <div class="faq reveal"><button type="button" aria-expanded="false"><span>How many emails a day?</span><span class="icon">+</span></button>
+      <div class="body"><div><p>Forty by default, five to ten minutes apart, only between 9 and 5 in each professor&#x27;s own time zone, on weekdays. You can lower it.</p></div></div></div>
+      <div class="faq reveal"><button type="button" aria-expanded="false"><span>What does it cost?</span><span class="icon">+</span></button>
+      <div class="body"><div><p>The app is free. Drafting uses your own model key (Groq is free; OpenAI gpt-5-mini costs about half a cent per email).</p></div></div></div>
+      <div class="faq reveal"><button type="button" aria-expanded="false"><span>Can I read emails before they go?</span><span class="icon">+</span></button>
+      <div class="body"><div><p>Always. Send review copies to yourself, export .eml files, or approve replies one by one before anything leaves.</p></div></div></div>
+      <div class="faq reveal"><button type="button" aria-expanded="false"><span>Is my password safe?</span><span class="icon">+</span></button>
+      <div class="body"><div><p>Credentials are encrypted at rest on the server and are only handed to your own sending job. You can delete them at any time.</p></div></div></div>
+    </div>
   </div>
 </section>
 
@@ -166,7 +302,8 @@ tailwind.config = {
 </section>
 
 <footer class="px-6 pb-12 text-center text-sm text-muted">
-  <p>Agnostos · open source · <a class="underline" href="https://github.com/Avinashistoocool/Agnostos-v3">GitHub</a></p>
+  <p>Agnostos is a free, open-source research internship outreach tool for students.</p>
+  <p class="mt-2"><a class="underline" href="https://github.com/Avinashistoocool/Agnostos-v2">Agnostos on GitHub (CLI)</a> · <a class="underline" href="https://github.com/Avinashistoocool/Agnostos-v3">Agnostos web app</a></p>
 </footer>
 
 <script src="/softly.js"></script>

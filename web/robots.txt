@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /app.html
+
+Sitemap: https://agnostos.app/sitemap.xml

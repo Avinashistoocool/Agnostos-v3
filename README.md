@@ -1,12 +1,26 @@
-# Agnostos v3
+# Agnostos: research internship outreach web app
 
-Agnostos is a web app built on the Agnostos outreach pipeline. Each user signs up, uploads a resume, and connects their own mailbox and model key. From the browser they can discover professors, verify emails, draft, send, read replies and send follow-ups. The landing page uses a soft visual theme.
+**Agnostos** is a web app built on the [Agnostos outreach pipeline](https://github.com/Avinashistoocool/Agnostos-v2). Each user signs up, uploads a resume, and connects their own mailbox and model key. From the browser they can discover professors, verify emails, draft, send, read replies and send follow-ups. The landing page uses a soft visual theme.
 
 ```
 web/         landing page (index.html) and dashboard (app.html), static, no build step
 server/      FastAPI: auth, per-user workspaces, encrypted credentials, job runner, daily scheduler
 outreach/    the CLI pipeline, unchanged; each job runs it as a subprocess
 ```
+
+## SEO checklist (to rank first for "agnostos")
+
+The page already has the on-page signals: keyword title/description, canonical URL, Open Graph and Twitter cards, `og.png`, Organization/WebSite/SoftwareApplication/FAQPage JSON-LD, FAQ text crawlers can read, `robots.txt`, `sitemap.xml` and a `noindex` on the dashboard.
+
+The rest has to be done off the page:
+
+1. **Domain.** Buy one with the brand name in it (e.g. `agnostos.app`). If you choose a different domain, find and replace `https://agnostos.app` in `web/index.html`, `web/robots.txt` and `web/sitemap.xml`.
+2. **Deploy** (see below) so it's live over HTTPS.
+3. **Google Search Console**: add the domain, verify it via DNS TXT, submit `/sitemap.xml`, and use *URL Inspection → Request indexing*. Do the same in **Bing Webmaster Tools** (which also feeds DuckDuckGo and Yahoo).
+4. **Backlinks with the anchor text "Agnostos"**: the GitHub repo homepage fields, your GitHub profile README, LinkedIn, a Product Hunt launch, a Show HN post, Reddit (r/gradadmissions, r/PhD), dev.to/Medium write-ups, and your personal or college pages.
+5. **Consistent naming**: use "Agnostos" (not "agnostos-v2") as the name everywhere you link it.
+
+Expect indexing within days. Ranking first for a rare brand word usually takes 1–4 weeks once there are a handful of backlinks.
 
 ## Run it locally
 
