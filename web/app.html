@@ -41,6 +41,9 @@ tailwind.config = { theme: { extend: {
   </section>
 
   <div id="app" class="hidden space-y-6">
+    <p id="sending-disabled" class="hidden card p-4 text-sm bg-lavender" role="status">
+      Private preview: sending is disabled on this server. Your existing v2 outreach is unaffected.
+    </p>
     <!-- Overview -->
     <section data-tab="Overview" class="space-y-6">
       <div class="grid grid-cols-2 sm:grid-cols-5 gap-3" id="kpis"></div>
@@ -139,7 +142,7 @@ tailwind.config = { theme: { extend: {
         <div class="flex gap-2">
           <button class="pill bg-white border border-stone-200" data-run='{"command":"check-replies","options":{}}'>Check inbox</button>
           <button class="pill bg-coral" data-run='{"command":"replies","options":{}}'>Draft replies</button>
-          <button class="pill bg-ink text-cream" data-run='{"command":"replies","options":{"send":true,"live":true}}' data-confirm="Send all approved replies now?">Send approved</button>
+          <button id="reply-send" class="pill bg-ink text-cream disabled:opacity-40" data-run='{"command":"replies","options":{"send":true,"live":true}}' data-confirm="Send all approved replies now?">Send approved</button>
         </div>
       </div>
       <div id="reply-list" class="space-y-4"></div>

@@ -8,6 +8,7 @@ services:
       TZ: ${TZ:-Asia/Kolkata}
       DATABASE_URL: postgresql+psycopg://agnostos:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/agnostos
       AGNOSTOS_SCHEDULER_ENABLED: ${AGNOSTOS_SCHEDULER_ENABLED:-false}
+      AGNOSTOS_LIVE_SEND_ENABLED: ${AGNOSTOS_LIVE_SEND_ENABLED:-false}
     depends_on:
       postgres:
         condition: service_healthy

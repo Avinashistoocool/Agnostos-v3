@@ -56,6 +56,11 @@ USER_KEYS = {
 }
 SECRET_KEYS = {"OPENAI_API_KEY", "GROQ_API_KEY", "SMTP_PASSWORD", "IMAP_PASSWORD"}
 
+
+def sending_enabled() -> bool:
+    return os.getenv("AGNOSTOS_LIVE_SEND_ENABLED", "false").strip().lower() == "true"
+
+
 # Every command the UI can run, and the flags it may pass. Values are
 # validated so a request can never smuggle arbitrary arguments to the CLI.
 COMMANDS = {
@@ -112,7 +117,7 @@ async def lifespan(app):
     migrate()
     stop = threading.Event()
     scheduler = None
-    if os.getenv("AGNOSTOS_SCHEDULER_ENABLED", "true").lower() == "true":
+    if sending_enabled() and os.getenv("AGNOSTOS_SCHEDULER_ENABLED", "true").lower() == "true":
         with engine.begin() as c:
             c.execute(update(jobs).where(jobs.c.status == "running").values(status="interrupted"))
         scheduler = threading.Thread(target=scheduler_loop, args=(stop,), daemon=True)
@@ -207,7 +212,8 @@ def me(user=Depends(current_user)):
     masked = {k: ("••••" + v[-4:] if k in SECRET_KEYS and v else v)
               for k, v in s.items() if not k.startswith("_")}
     return {"email": user["email"], "settings": masked, "files": files,
-            "schedule": json.loads(user["schedule"] or "{}")}
+            "schedule": json.loads(user["schedule"] or "{}"),
+            "sending_enabled": sending_enabled()}
 
 
 @app.put("/api/settings")
@@ -298,6 +304,9 @@ def _running(user_id: int):
 
 
 def start_job(user, command: str, opts: dict) -> int:
+    if not sending_enabled() and (command == "send" or
+                                  (command == "replies" and opts.get("send"))):
+        raise HTTPException(403, "Sending is disabled on this deployment")
     if _running(user["id"]):
         raise HTTPException(409, "A job is already running; wait or cancel it")
     argv = _argv(command, opts)
@@ -427,6 +436,8 @@ class Schedule(BaseModel):
 
 @app.put("/api/schedule")
 def put_schedule(body: Schedule, user=Depends(current_user)):
+    if body.enabled and not sending_enabled():
+        raise HTTPException(403, "Sending is disabled on this deployment")
     with engine.begin() as c:
         c.execute(update(users).where(users.c.id == user["id"]).values(schedule=body.model_dump_json()))
     return {"ok": True}

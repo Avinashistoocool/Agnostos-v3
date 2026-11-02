@@ -48,6 +48,7 @@ Set these in the Compose `.env` (not committed):
 APP_SECRET=<Fernet key, preserve the original key when upgrading>
 POSTGRES_PASSWORD=<long random hex password>
 AGNOSTOS_SCHEDULER_ENABLED=false
+AGNOSTOS_LIVE_SEND_ENABLED=false
 TZ=Asia/Kolkata
 ```
 
@@ -70,6 +71,9 @@ server settings from the process environment, not the CLI `.env` file.
 **Run one API process/replica for now.** The existing CLI worker and scheduler
 are not a distributed queue. PostgreSQL alone does not make live sending
 safe across multiple API workers. Keep schedules disabled while migrating.
+The API also refuses `send` and `replies --send` jobs unless
+`AGNOSTOS_LIVE_SEND_ENABLED=true` is set deliberately. Keep it false in
+staging; the legacy pipeline still lacks v2's safety fixes.
 
 ## Move an existing SQLite installation
 

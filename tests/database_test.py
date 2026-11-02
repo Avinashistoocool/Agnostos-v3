@@ -201,6 +201,20 @@ class DatabaseTests(unittest.TestCase):
         self.assertEqual(self.client.post("/api/jobs", headers=self.owner,
             json={"command": "not-allowed"}).status_code, 400)
 
+    def test_private_preview_cannot_send_even_with_direct_api_call(self):
+        self.assertFalse(self.client.get("/api/me", headers=self.owner).json()["sending_enabled"])
+        for command, options in (("send", {"live": True}), ("send", {"review": True}),
+                                 ("send", {}), ("replies", {"send": True, "live": True}),
+                                 ("replies", {"send": True})):
+            result = self.client.post("/api/jobs", headers=self.owner,
+                                      json={"command": command, "options": options})
+            self.assertEqual(result.status_code, 403, result.text)
+        self.assertEqual(self.client.get("/api/jobs", headers=self.owner).json(), [])
+        self.assertEqual(self.client.put("/api/schedule", headers=self.owner,
+            json={"enabled": True}).status_code, 403)
+        self.assertEqual(self.client.put("/api/schedule", headers=self.owner,
+            json={"enabled": False}).status_code, 200)
+
     def test_upgrade_preserves_legacy_sqlite_accounts(self):
         path = Path(WORK.name) / "legacy.db"
         with closing(sqlite3.connect(path)) as c, c:

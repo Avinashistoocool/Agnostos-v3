@@ -187,6 +187,15 @@ async function loadMe() {
   renderSettings(me.settings); renderUploads(me.files);
   const s = me.schedule || {}; const f = $('#schedule').elements;
   f.enabled.checked = !!s.enabled; if (s.time) f.time.value = s.time; if (s.limit) f.limit.value = s.limit; if (s.local_window) f.local_window.value = s.local_window;
+  const disabled = !me.sending_enabled;
+  $('#sending-disabled').classList.toggle('hidden', !disabled);
+  $('#reply-send').disabled = disabled;
+  for (const form of document.querySelectorAll('#tools [data-tool]')) {
+    const [command] = TOOLS[+form.dataset.tool];
+    if (command === 'send') form.querySelector('button').disabled = disabled;
+  }
+  // Keep the checkbox usable so an old schedule can still be disabled.
+  $('#schedule').dataset.sendingDisabled = disabled ? 'true' : 'false';
 }
 async function boot() {
   if (!token) return;

@@ -51,42 +51,28 @@ Then open http://localhost:8000.
 - Each user's files live in `/data/users/<id>/`. Job logs stream to the dashboard.
 - The scheduler runs a paced send on weekdays for every user who turns it on.
 
-## Deploying for free
+## Deployment
+
+**Recommended first deployment: [private Oracle VM staging](docs/oracle-private-staging.md).**
+It runs v3 + PostgreSQL on a VM, keeps the web app bound to localhost, and
+connects over an SSH tunnel. No domain is needed. Sending is disabled by
+default; v2 outreach remains on your computer. **Do not expose v3 as a public
+mail service until v2 feature/safety parity and campaign migration are done.**
 
 The app needs **a process that stays up for hours**, because a paced send of 40 emails takes 4 to 7 hours. It also needs **a persistent disk** and **outbound SMTP on port 465 or 587**. That rules out serverless hosts and the free tiers of hosts that sleep (Vercel, Netlify, Render free, Railway trial).
 
 | Option | Cost | Good for | Notes |
 |---|---|---|---|
-| **Oracle Cloud Always Free** ARM VM (4 vCPU / 24 GB) + Cloudflare Tunnel | $0 | **Recommended** for real users | Always on, 200 GB disk, outbound 465/587 allowed. |
+| **Oracle Cloud Always Free eligible** ARM VM | Check console eligibility | Private v3 staging | Availability varies; outbound mail ports are not guaranteed and are irrelevant while sending is off. |
 | Google Cloud e2-micro (always free) + Cloudflare Tunnel | $0 | small, a few users | 1 GB RAM: add swap. |
 | Your own laptop or PC + Tailscale Funnel / Cloudflare Tunnel | $0 | you and friends | Only up while the machine is awake. |
 | Hugging Face Spaces (Docker) | $0 | demo only | Sleeps when idle and has no free persistent disk, so it can lose jobs. |
 
 You do **not** need a separate frontend host: FastAPI serves `web/`. If you want the landing page on a CDN anyway, point Cloudflare Pages at `web/`. The `/app.html` and `/api` routes still have to reach the VM.
 
-### Oracle Cloud and Cloudflare Tunnel, step by step
-
-1. Create an Oracle Cloud account and an **Ampere A1** instance (Ubuntu 24.04, 2-4 OCPU, 12-24 GB).
-2. SSH in and install Docker:
-   `curl -fsSL https://get.docker.com | sh && sudo usermod -aG docker $USER`
-3. `git clone https://github.com/<you>/Agnostos-v3 && cd Agnostos-v3`
-4. Generate a Fernet key and a random database password as described in the
-   [database guide](docs/database.md), then create `.env` next to
-   `docker-compose.yml`:
-   ```
-   APP_SECRET=<generated Fernet key>
-   POSTGRES_PASSWORD=<generated random hex password>
-   AGNOSTOS_SCHEDULER_ENABLED=false
-   TZ=Asia/Kolkata
-   CLOUDFLARE_TUNNEL_TOKEN=<from Cloudflare Zero Trust -> Networks -> Tunnels -> Create>
-   ```
-   In the tunnel's *Public hostname* settings, map `agnostos.<your-domain>` to `http://agnostos:8000`. A free domain from Cloudflare Registrar at cost is fine, and so is a free `*.trycloudflare.com` quick tunnel for testing.
-5. `docker compose --profile tunnel up -d --build`
-6. Back up PostgreSQL separately with `pg_dump` (see [database guide](docs/database.md)).
-   Also back up `/data` (uploads, legacy workspaces and the local key if used):
-   `docker run --rm -v agnostos_agnostos-data:/d -v $PWD:/b alpine tar czf /b/backup.tgz /d`
-
-Nothing listens on a public port, because the tunnel connects outbound. HTTPS comes from Cloudflare.
+For the first deployment, follow the [Oracle private staging guide](docs/oracle-private-staging.md).
+The optional Cloudflare Tunnel profile exists for a future, explicitly
+approved public setup; do not enable it for this preview.
 
 ### Your own machine, with Tailscale
 
@@ -104,5 +90,5 @@ tailscale funnel 8000        # public https://<machine>.<tailnet>.ts.net
 ## Limits to know before inviting people
 
 - Each user sends from **their own** mailbox, so deliverability and rate limits are per user. Keep `DAILY_SEND_CAP` at or below 40.
-- Every user's jobs run on one machine. On the free Oracle VM, about 20-50 concurrent paced senders is comfortable, because they mostly sleep between emails.
+- Every user's jobs run on one machine; capacity depends on the VM and workload.
 - Users' mailbox passwords are stored on your server. Use a strong `APP_SECRET`, keep backups encrypted, and publish a privacy note.
