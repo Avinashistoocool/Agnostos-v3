@@ -4,12 +4,32 @@ services:
     restart: unless-stopped
     environment:
       # Generate once: python -c "from cryptography.fernet import Fernet;print(Fernet.generate_key().decode())"
-      APP_SECRET: ${APP_SECRET}
+      APP_SECRET: ${APP_SECRET:?Set APP_SECRET to a Fernet key; preserve the original key when migrating}
       TZ: ${TZ:-Asia/Kolkata}
+      DATABASE_URL: postgresql+psycopg://agnostos:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/agnostos
+      AGNOSTOS_SCHEDULER_ENABLED: ${AGNOSTOS_SCHEDULER_ENABLED:-false}
+    depends_on:
+      postgres:
+        condition: service_healthy
     volumes:
       - agnostos-data:/data
     ports:
       - "127.0.0.1:8000:8000"
+
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: agnostos
+      POSTGRES_USER: agnostos
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agnostos -d agnostos"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
 
   # Free HTTPS without opening ports: https://one.dash.cloudflare.com -> Tunnels
   cloudflared:
@@ -21,3 +41,4 @@ services:
 
 volumes:
   agnostos-data:
+  postgres-data:

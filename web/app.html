@@ -20,7 +20,7 @@ tailwind.config = { theme: { extend: {
 
 <nav class="sticky top-4 z-40 mx-auto w-[calc(100%-32px)] max-w-5xl bg-white/70 backdrop-blur-[20px] rounded-full shadow-soft flex items-center justify-between pl-3 pr-2 py-2 mt-4">
   <a href="/" class="flex items-center gap-2"><span class="w-8 h-8 rounded-full bg-coral grid place-items-center"><span class="w-2.5 h-2.5 rounded-full bg-white"></span></span><span class="font-medium">agnostos</span></a>
-  <div id="tabs" class="hidden gap-1 text-[14px] font-medium"></div>
+  <div id="tabs" class="hidden gap-1 text-[14px] font-medium overflow-x-auto"></div>
   <button id="logout" class="hidden bg-ink text-cream text-[14px] rounded-full px-4 py-2">Sign out</button>
 </nav>
 
@@ -49,8 +49,68 @@ tailwind.config = { theme: { extend: {
         <div class="card p-6"><h3 class="font-medium">Why rows weren't drafted</h3><div id="llm-break" class="mt-3 text-sm space-y-1"></div></div>
       </div>
       <div class="card p-6 flex items-center justify-between gap-4 flex-wrap">
-        <div><h3 class="font-medium">Workbook</h3><p class="text-sm text-muted">Every professor, draft, status and reply.</p></div>
+        <div><h3 class="font-medium">Legacy pipeline workbook</h3><p class="text-sm text-muted">Pipeline drafts and send history. Database contacts are in Researchers.</p></div>
         <button id="dl" class="pill bg-ink text-cream">Download .xlsx</button>
+      </div>
+    </section>
+
+    <section data-tab="Researchers" class="space-y-6 hidden">
+      <div class="card p-6 space-y-4">
+        <div>
+          <h1 class="text-2xl font-medium">Researchers</h1>
+          <p id="researcher-storage" class="text-xs text-muted mt-1"></p>
+          <p class="text-sm text-muted mt-2">Your database-backed contact library. Adding or importing a record never approves or sends email.</p>
+        </div>
+        <p class="text-sm bg-lavender rounded-2xl p-4">Migration preview: Pipeline and Replies still use their legacy workbook/queue. This library is separate until campaigns and sending are migrated. Import contact fields only; retain original files for drafts and send history.</p>
+        <div class="flex flex-wrap gap-3">
+          <button type="button" id="researcher-new" class="pill bg-coral">Add researcher</button>
+          <button type="button" id="researcher-import" class="pill bg-white border border-stone-200">Import .xlsx</button>
+          <input type="file" id="researcher-file" accept=".xlsx" class="hidden" aria-label="Import researcher workbook">
+          <button type="button" id="researcher-export" class="pill bg-white border border-stone-200">Export .xlsx</button>
+        </div>
+        <p id="researcher-message" class="text-sm" role="status" aria-live="polite"></p>
+      </div>
+
+      <form id="researcher-form" class="card p-6 space-y-4 hidden">
+        <h2 id="researcher-form-title" class="text-lg font-medium">Add researcher</h2>
+        <input type="hidden" name="id">
+        <input type="hidden" name="updated_at">
+        <div class="grid sm:grid-cols-2 gap-4">
+          <label class="text-sm">Name *<input class="field mt-1" name="name" maxlength="200" required></label>
+          <label class="text-sm">Email<input class="field mt-1" name="email" type="email" maxlength="254"></label>
+          <label class="text-sm">Institution<input class="field mt-1" name="institution" maxlength="300"></label>
+          <label class="text-sm">Country<input class="field mt-1" name="country" maxlength="100"></label>
+        </div>
+        <label class="block text-sm">Research area<textarea class="field mt-1" name="research_area" maxlength="2000" rows="2"></textarea></label>
+        <label class="block text-sm">Notes<textarea class="field mt-1" name="notes" maxlength="5000" rows="3"></textarea></label>
+        <div class="flex gap-3">
+          <button class="pill bg-ink text-cream" type="submit">Save researcher</button>
+          <button class="pill bg-white border border-stone-200" id="researcher-cancel" type="button">Cancel</button>
+        </div>
+        <p id="researcher-form-message" class="text-sm text-red-600" role="alert"></p>
+      </form>
+
+      <div class="card p-6 space-y-4">
+        <form id="researcher-search" class="flex gap-2">
+          <input name="q" class="field" placeholder="Search name, email, institution or research area" maxlength="200" aria-label="Search researchers">
+          <button class="pill bg-ink text-cream">Search</button>
+        </form>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm text-left">
+            <thead><tr class="border-b border-stone-200">
+              <th class="p-3">Researcher</th><th class="p-3">Institution</th>
+              <th class="p-3">Research area</th><th class="p-3">Actions</th>
+            </tr></thead>
+            <tbody id="researcher-rows"></tbody>
+          </table>
+        </div>
+        <div class="flex items-center justify-between gap-3">
+          <p id="researcher-count" class="text-sm text-muted" role="status"></p>
+          <div class="flex gap-2">
+            <button type="button" id="researcher-prev" class="pill bg-white border border-stone-200 disabled:opacity-40">Previous</button>
+            <button type="button" id="researcher-next" class="pill bg-white border border-stone-200 disabled:opacity-40">Next</button>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -68,6 +128,7 @@ tailwind.config = { theme: { extend: {
 
     <!-- Pipeline -->
     <section data-tab="Pipeline" class="space-y-6 hidden">
+      <p class="card p-4 text-sm text-muted">Legacy pipeline: these jobs use the uploaded/discovered workbook, not the database Researchers library.</p>
       <div class="grid md:grid-cols-2 gap-4" id="tools"></div>
     </section>
 
@@ -111,5 +172,6 @@ tailwind.config = { theme: { extend: {
   </div>
 </main>
 <script src="/app.js"></script>
+<script src="/researchers.js"></script>
 </body>
 </html>

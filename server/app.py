@@ -12,12 +12,11 @@ import json
 import os
 import re
 import secrets
-import sqlite3
 import subprocess
 import sys
 import threading
 import time
-from contextlib import closing
+from contextlib import asynccontextmanager
 from datetime import datetime
 from pathlib import Path
 
@@ -26,11 +25,10 @@ from fastapi import Depends, FastAPI, File, Header, HTTPException, UploadFile
 from fastapi.responses import FileResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, EmailStr, Field
+from sqlalchemy import delete, insert, select, update
+from sqlalchemy.exc import IntegrityError
 
-ROOT = Path(__file__).resolve().parent.parent
-DATA = Path(os.getenv("AGNOSTOS_DATA", ROOT / "data")).resolve()
-DATA.mkdir(parents=True, exist_ok=True)
-DB = DATA / "agnostos.db"
+from .database import DATA, ROOT, engine, jobs, migrate, sessions, users, waitlist as waitlist_table
 
 
 def _fernet() -> Fernet:
@@ -77,27 +75,6 @@ SAFE_STR = re.compile(r"^[\w\s;,.:@+\-/()&'\"]{0,300}$")
 
 
 # ------------------------------------------------------------------ storage
-def db() -> sqlite3.Connection:
-    conn = sqlite3.connect(DB, timeout=30)
-    conn.row_factory = sqlite3.Row
-    return conn
-
-
-def init_db() -> None:
-    with closing(db()) as c, c:
-        c.executescript("""
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY, email TEXT UNIQUE NOT NULL, pw TEXT NOT NULL,
-            settings BLOB, schedule TEXT, created_at TEXT);
-        CREATE TABLE IF NOT EXISTS sessions (
-            token TEXT PRIMARY KEY, user_id INTEGER NOT NULL, created_at REAL);
-        CREATE TABLE IF NOT EXISTS jobs (
-            id INTEGER PRIMARY KEY, user_id INTEGER NOT NULL, command TEXT, args TEXT,
-            status TEXT, pid INTEGER, started_at TEXT, finished_at TEXT, exit_code INTEGER);
-        CREATE TABLE IF NOT EXISTS waitlist (email TEXT PRIMARY KEY, created_at TEXT);
-        """)
-
-
 def _hash(pw: str, salt: bytes | None = None) -> str:
     salt = salt or secrets.token_bytes(16)
     dk = hashlib.pbkdf2_hmac("sha256", pw.encode(), salt, 310_000)
@@ -125,12 +102,31 @@ def load_settings(row) -> dict:
 
 def save_settings(user_id: int, values: dict) -> None:
     blob = FERNET.encrypt(json.dumps(values).encode())
-    with closing(db()) as c, c:
-        c.execute("UPDATE users SET settings=? WHERE id=?", (blob, user_id))
+    with engine.begin() as c:
+        c.execute(update(users).where(users.c.id == user_id).values(settings=blob))
 
 
 # ------------------------------------------------------------------ auth
-app = FastAPI(title="Agnostos", docs_url="/api/docs", openapi_url="/api/openapi.json")
+@asynccontextmanager
+async def lifespan(app):
+    migrate()
+    stop = threading.Event()
+    scheduler = None
+    if os.getenv("AGNOSTOS_SCHEDULER_ENABLED", "true").lower() == "true":
+        with engine.begin() as c:
+            c.execute(update(jobs).where(jobs.c.status == "running").values(status="interrupted"))
+        scheduler = threading.Thread(target=scheduler_loop, args=(stop,), daemon=True)
+        scheduler.start()
+    try:
+        yield
+    finally:
+        stop.set()
+        if scheduler:
+            scheduler.join(timeout=5)
+
+
+app = FastAPI(title="Agnostos", docs_url="/api/docs", openapi_url="/api/openapi.json",
+              lifespan=lifespan)
 
 
 class Creds(BaseModel):
@@ -142,9 +138,9 @@ def current_user(authorization: str = Header(default="")):
     token = authorization.removeprefix("Bearer ").strip()
     if not token:
         raise HTTPException(401, "Not signed in")
-    with closing(db()) as c:
-        row = c.execute("SELECT u.* FROM sessions s JOIN users u ON u.id=s.user_id "
-                        "WHERE s.token=?", (token,)).fetchone()
+    with engine.connect() as c:
+        row = c.execute(select(users).join(sessions, users.c.id == sessions.c.user_id)
+                        .where(sessions.c.token == token)).mappings().first()
     if not row:
         raise HTTPException(401, "Session expired")
     return row
@@ -152,35 +148,36 @@ def current_user(authorization: str = Header(default="")):
 
 @app.post("/api/signup")
 def signup(body: Creds):
-    with closing(db()) as c, c:
-        try:
-            cur = c.execute("INSERT INTO users(email,pw,created_at) VALUES(?,?,?)",
-                            (body.email.lower(), _hash(body.password),
-                             datetime.now().isoformat(timespec="seconds")))
-        except sqlite3.IntegrityError:
-            raise HTTPException(409, "That email already has an account")
-        token = secrets.token_urlsafe(32)
-        c.execute("INSERT INTO sessions VALUES(?,?,?)", (token, cur.lastrowid, time.time()))
-    workspace(cur.lastrowid)
+    try:
+        with engine.begin() as c:
+            user_id = c.execute(insert(users).values(
+                email=body.email.lower(), pw=_hash(body.password),
+                created_at=datetime.now().isoformat(timespec="seconds"))
+                .returning(users.c.id)).scalar_one()
+            token = secrets.token_urlsafe(32)
+            c.execute(insert(sessions).values(token=token, user_id=user_id, created_at=time.time()))
+    except IntegrityError:
+        raise HTTPException(409, "That email already has an account") from None
+    workspace(user_id)
     return {"token": token}
 
 
 @app.post("/api/login")
 def login(body: Creds):
-    with closing(db()) as c, c:
-        row = c.execute("SELECT * FROM users WHERE email=?", (body.email.lower(),)).fetchone()
+    with engine.begin() as c:
+        row = c.execute(select(users).where(users.c.email == body.email.lower())).mappings().first()
         if not row or not _check(body.password, row["pw"]):
             raise HTTPException(401, "Wrong email or password")
         token = secrets.token_urlsafe(32)
-        c.execute("INSERT INTO sessions VALUES(?,?,?)", (token, row["id"], time.time()))
+        c.execute(insert(sessions).values(token=token, user_id=row["id"], created_at=time.time()))
     return {"token": token}
 
 
 @app.post("/api/logout")
 def logout(authorization: str = Header(default="")):
-    with closing(db()) as c, c:
-        c.execute("DELETE FROM sessions WHERE token=?",
-                  (authorization.removeprefix("Bearer ").strip(),))
+    with engine.begin() as c:
+        c.execute(delete(sessions).where(
+            sessions.c.token == authorization.removeprefix("Bearer ").strip()))
     return {"ok": True}
 
 
@@ -190,9 +187,12 @@ class Waitlist(BaseModel):
 
 @app.post("/api/waitlist")
 def waitlist(body: Waitlist):
-    with closing(db()) as c, c:
-        c.execute("INSERT OR IGNORE INTO waitlist VALUES(?,?)",
-                  (body.email.lower(), datetime.now().isoformat(timespec="seconds")))
+    with engine.begin() as c:
+        from sqlalchemy.dialects import postgresql, sqlite
+        dialect_insert = postgresql.insert if engine.dialect.name == "postgresql" else sqlite.insert
+        c.execute(dialect_insert(waitlist_table).values(
+            email=body.email.lower(), created_at=datetime.now().isoformat(timespec="seconds"))
+            .on_conflict_do_nothing(index_elements=["email"]))
     return {"ok": True}
 
 
@@ -292,9 +292,9 @@ def _argv(command: str, opts: dict) -> list[str]:
 
 
 def _running(user_id: int):
-    with closing(db()) as c:
-        return c.execute("SELECT * FROM jobs WHERE user_id=? AND status='running'",
-                         (user_id,)).fetchone()
+    with engine.connect() as c:
+        return c.execute(select(jobs).where(
+            jobs.c.user_id == user_id, jobs.c.status == "running")).mappings().first()
 
 
 def start_job(user, command: str, opts: dict) -> int:
@@ -302,25 +302,24 @@ def start_job(user, command: str, opts: dict) -> int:
         raise HTTPException(409, "A job is already running; wait or cancel it")
     argv = _argv(command, opts)
     ws = workspace(user["id"])
-    with closing(db()) as c, c:
-        cur = c.execute("INSERT INTO jobs(user_id,command,args,status,started_at) "
-                        "VALUES(?,?,?,?,?)", (user["id"], command, json.dumps(opts),
-                                              "running", datetime.now().isoformat(timespec="seconds")))
-        job_id = cur.lastrowid
+    with engine.begin() as c:
+        job_id = c.execute(insert(jobs).values(
+            user_id=user["id"], command=command, args=json.dumps(opts), status="running",
+            started_at=datetime.now().isoformat(timespec="seconds"))
+            .returning(jobs.c.id)).scalar_one()
     log = open(ws / "jobs" / f"{job_id}.log", "w", encoding="utf-8")
     proc = subprocess.Popen(argv, cwd=ROOT, env=_env_for(user), stdout=log,
                             stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL)
-    with closing(db()) as c, c:
-        c.execute("UPDATE jobs SET pid=? WHERE id=?", (proc.pid, job_id))
+    with engine.begin() as c:
+        c.execute(update(jobs).where(jobs.c.id == job_id).values(pid=proc.pid))
 
     def reap():
         code = proc.wait()
         log.close()
-        with closing(db()) as c, c:
-            c.execute("UPDATE jobs SET status=?, exit_code=?, finished_at=? WHERE id=? "
-                      "AND status='running'",
-                      ("done" if code == 0 else "failed", code,
-                       datetime.now().isoformat(timespec="seconds"), job_id))
+        with engine.begin() as c:
+            c.execute(update(jobs).where(jobs.c.id == job_id, jobs.c.status == "running")
+                      .values(status="done" if code == 0 else "failed", exit_code=code,
+                              finished_at=datetime.now().isoformat(timespec="seconds")))
     threading.Thread(target=reap, daemon=True).start()
     return job_id
 
@@ -337,10 +336,11 @@ def create_job(req: JobReq, user=Depends(current_user)):
 
 @app.get("/api/jobs")
 def list_jobs(user=Depends(current_user)):
-    with closing(db()) as c:
-        rows = c.execute("SELECT id,command,args,status,started_at,finished_at,exit_code "
-                         "FROM jobs WHERE user_id=? ORDER BY id DESC LIMIT 30",
-                         (user["id"],)).fetchall()
+    with engine.connect() as c:
+        rows = c.execute(select(jobs.c.id, jobs.c.command, jobs.c.args, jobs.c.status,
+                                jobs.c.started_at, jobs.c.finished_at, jobs.c.exit_code)
+                         .where(jobs.c.user_id == user["id"]).order_by(jobs.c.id.desc())
+                         .limit(30)).mappings().all()
     return [dict(r) for r in rows]
 
 
@@ -357,17 +357,17 @@ def job_log(job_id: int, tail: int = 200, user=Depends(current_user)):
 
 @app.post("/api/jobs/{job_id}/cancel")
 def cancel_job(job_id: int, user=Depends(current_user)):
-    with closing(db()) as c, c:
-        row = c.execute("SELECT * FROM jobs WHERE id=? AND user_id=? AND status='running'",
-                        (job_id, user["id"])).fetchone()
+    with engine.begin() as c:
+        row = c.execute(select(jobs).where(jobs.c.id == job_id, jobs.c.user_id == user["id"],
+                                           jobs.c.status == "running")).mappings().first()
         if not row:
             raise HTTPException(404, "No running job with that id")
         try:
             os.kill(row["pid"], 15 if os.name != "nt" else 9)
         except OSError:
             pass
-        c.execute("UPDATE jobs SET status='cancelled', finished_at=? WHERE id=?",
-                  (datetime.now().isoformat(timespec="seconds"), job_id))
+        c.execute(update(jobs).where(jobs.c.id == job_id).values(
+            status="cancelled", finished_at=datetime.now().isoformat(timespec="seconds")))
     return {"ok": True}
 
 
@@ -427,21 +427,20 @@ class Schedule(BaseModel):
 
 @app.put("/api/schedule")
 def put_schedule(body: Schedule, user=Depends(current_user)):
-    with closing(db()) as c, c:
-        c.execute("UPDATE users SET schedule=? WHERE id=?",
-                  (body.model_dump_json(), user["id"]))
+    with engine.begin() as c:
+        c.execute(update(users).where(users.c.id == user["id"]).values(schedule=body.model_dump_json()))
     return {"ok": True}
 
 
-def scheduler_loop() -> None:
+def scheduler_loop(stop: threading.Event) -> None:
     """Weekday daily send per user, plus a reply check right before it."""
     fired: set[tuple[int, str]] = set()
-    while True:
+    while not stop.is_set():
         now = datetime.now()
         stamp = now.strftime("%H:%M")
-        with closing(db()) as c:
-            users = c.execute("SELECT * FROM users WHERE schedule IS NOT NULL").fetchall()
-        for u in users:
+        with engine.connect() as c:
+            scheduled_users = c.execute(select(users).where(users.c.schedule.is_not(None))).mappings().all()
+        for u in scheduled_users:
             sch = json.loads(u["schedule"] or "{}")
             key = (u["id"], now.strftime("%Y-%m-%d"))
             if not sch.get("enabled") or now.weekday() >= 5 or key in fired:
@@ -454,7 +453,7 @@ def scheduler_loop() -> None:
                                           "wait": True})
                 except HTTPException:
                     pass
-        time.sleep(30)
+        stop.wait(30)
 
 
 @app.get("/api/health")
@@ -462,13 +461,7 @@ def health():
     return {"ok": True}
 
 
-@app.on_event("startup")
-def _startup():
-    init_db()
-    # A restart orphans running jobs; mark them so the UI doesn't hang.
-    with closing(db()) as c, c:
-        c.execute("UPDATE jobs SET status='interrupted' WHERE status='running'")
-    threading.Thread(target=scheduler_loop, daemon=True).start()
+from .researchers import router as researcher_router
 
-
+app.include_router(researcher_router(current_user))
 app.mount("/", StaticFiles(directory=ROOT / "web", html=True), name="web")

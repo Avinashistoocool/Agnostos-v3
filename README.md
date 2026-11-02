@@ -8,6 +8,19 @@ server/      FastAPI: auth, per-user workspaces, encrypted credentials, job runn
 outreach/    the CLI pipeline, unchanged; each job runs it as a subprocess
 ```
 
+## Database-first milestone
+
+The **Researchers** tab is now a database-backed contact library: add/edit/delete,
+search, pagination, XLSX import and export. Accounts, settings and job history
+also use the shared SQLAlchemy storage layer with Alembic migrations.
+Docker Compose provisions PostgreSQL; local development keeps existing SQLite
+data unless `DATABASE_URL` is explicitly set.
+
+**Pipeline sending and reply queues are still legacy.** The contact library
+does not automatically feed the sender, and imports never approve messages.
+See [database setup, migration and limitations](docs/database.md) before deploying
+or moving existing data. The desktop client is a later milestone.
+
 ## SEO checklist (to rank first for "agnostos")
 
 The page already has the on-page signals: keyword title/description, canonical URL, Open Graph and Twitter cards, `og.png`, Organization/WebSite/SoftwareApplication/FAQPage JSON-LD, FAQ text crawlers can read, `robots.txt`, `sitemap.xml` and a `noindex` on the dashboard.
@@ -57,15 +70,20 @@ You do **not** need a separate frontend host: FastAPI serves `web/`. If you want
 2. SSH in and install Docker:
    `curl -fsSL https://get.docker.com | sh && sudo usermod -aG docker $USER`
 3. `git clone https://github.com/<you>/Agnostos-v3 && cd Agnostos-v3`
-4. Create `.env` next to `docker-compose.yml`:
+4. Generate a Fernet key and a random database password as described in the
+   [database guide](docs/database.md), then create `.env` next to
+   `docker-compose.yml`:
    ```
-   APP_SECRET=<python -c "from cryptography.fernet import Fernet;print(Fernet.generate_key().decode())">
+   APP_SECRET=<generated Fernet key>
+   POSTGRES_PASSWORD=<generated random hex password>
+   AGNOSTOS_SCHEDULER_ENABLED=false
    TZ=Asia/Kolkata
    CLOUDFLARE_TUNNEL_TOKEN=<from Cloudflare Zero Trust -> Networks -> Tunnels -> Create>
    ```
    In the tunnel's *Public hostname* settings, map `agnostos.<your-domain>` to `http://agnostos:8000`. A free domain from Cloudflare Registrar at cost is fine, and so is a free `*.trycloudflare.com` quick tunnel for testing.
 5. `docker compose --profile tunnel up -d --build`
-6. Back up `/data` (it holds the database, the secret and every user's files):
+6. Back up PostgreSQL separately with `pg_dump` (see [database guide](docs/database.md)).
+   Also back up `/data` (uploads, legacy workspaces and the local key if used):
    `docker run --rm -v agnostos_agnostos-data:/d -v $PWD:/b alpine tar czf /b/backup.tgz /d`
 
 Nothing listens on a public port, because the tunnel connects outbound. HTTPS comes from Cloudflare.

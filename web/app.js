@@ -9,7 +9,10 @@ async function api(path, opts = {}) {
   if (r.status === 401) { signOut(); throw new Error('signed out'); }
   const ct = r.headers.get('content-type') || '';
   const data = ct.includes('json') ? await r.json() : await r.text();
-  if (!r.ok) throw new Error(data.detail || data || r.statusText);
+  if (!r.ok) {
+    const detail = data.detail || data || r.statusText;
+    throw new Error(Array.isArray(detail) ? detail.map(x => `${x.loc.join('.')}: ${x.msg}`).join('; ') : detail);
+  }
   return data;
 }
 
@@ -30,12 +33,13 @@ function signOut() { token = ''; localStorage.removeItem('agn_token'); location.
 $('#logout').onclick = async () => { try { await api('/api/logout', { method: 'POST' }); } catch {} signOut(); };
 
 // ---------- tabs
-const TABS = ['Overview', 'Setup', 'Pipeline', 'Replies', 'Schedule'];
+const TABS = ['Overview', 'Researchers', 'Setup', 'Pipeline', 'Replies', 'Schedule'];
 function showTab(name) {
   document.querySelectorAll('[data-tab]').forEach((s) => s.classList.toggle('hidden', s.dataset.tab !== name));
   document.querySelectorAll('#tabs button').forEach((b) => b.className = 'rounded-full px-3 py-1.5 ' + (b.textContent === name ? 'bg-coral' : 'text-muted hover:text-ink'));
   if (name === 'Overview') loadStats();
   if (name === 'Replies') loadReplies();
+  if (name === 'Researchers') loadResearchers();
 }
 $('#tabs').innerHTML = TABS.map((t) => `<button type="button">${t}</button>`).join('');
 $('#tabs').addEventListener('click', (e) => e.target.tagName === 'BUTTON' && showTab(e.target.textContent));
