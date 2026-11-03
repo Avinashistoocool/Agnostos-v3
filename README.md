@@ -50,6 +50,12 @@ The build script runs `npm ci` and compiles `web\site.css` from
 run `npm ci; npm run build:css` and keep the generated CSS in sync.
 
 Distribute **the whole `dist\Agnostos` folder**, not just the executable.
+Alternatively, open GitHub **Actions → Windows desktop → a successful run →
+Artifacts → Agnostos-Windows** to download the zipped build from `main`
+(or run the workflow manually). Extract the artifact and keep `Agnostos.exe`
+beside `_internal\`. Artifacts expire after 14 days; they are not public
+installer releases. The workflow runs offline browser tests and
+`.\tests\check-desktop-package.ps1` before upload.
 The packaged app does not require Python on the destination PC; WebView2
 Runtime is required. Close the window to stop the loopback server. The first
 launch creates `%LOCALAPPDATA%\Agnostos\` with its own SQLite database,
