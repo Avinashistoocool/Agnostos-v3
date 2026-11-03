@@ -6,13 +6,7 @@
 <title>Agnostos · app</title>
 <meta name="robots" content="noindex">
 <link rel="icon" type="image/png" href="/favicon.png">
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Reenie+Beanie&display=swap" rel="stylesheet">
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-tailwind.config = { theme: { extend: {
-  colors: { cream: '#FDFCF8', sage: '#E8EFE8', lavender: '#EFEDF4', coral: '#FFB7B2', ink: '#292524', muted: '#78716C' },
-  fontFamily: { sans: ['Outfit', 'sans-serif'], hand: ['"Reenie Beanie"', 'cursive'] } } } }
-</script>
+<link rel="stylesheet" href="/site.css">
 <link rel="stylesheet" href="/softly.css">
 </head>
 <body class="bg-cream text-ink font-sans antialiased">
@@ -42,7 +36,7 @@ tailwind.config = { theme: { extend: {
 
   <div id="app" class="hidden space-y-6">
     <p id="sending-disabled" class="hidden card p-4 text-sm bg-lavender" role="status">
-      Private preview: sending is disabled on this server. Your existing v2 outreach is unaffected.
+      Desktop preview: sending is disabled. Your existing outreach data is not imported.
     </p>
     <!-- Overview -->
     <section data-tab="Overview" class="space-y-6">

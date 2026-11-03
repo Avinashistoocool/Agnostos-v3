@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -11,7 +12,7 @@ except ImportError:  # pragma: no cover
     def load_dotenv(*_a, **_k):
         return False
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(sys._MEIPASS) if getattr(sys, "frozen", False) else Path(__file__).resolve().parent.parent
 load_dotenv(ROOT / ".env")
 
 

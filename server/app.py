@@ -274,7 +274,8 @@ def _argv(command: str, opts: dict) -> list[str]:
     spec = COMMANDS.get(command)
     if spec is None:
         raise HTTPException(400, f"Unknown command {command}")
-    argv = [sys.executable, "-m", "outreach.cli", command]
+    argv = ([sys.executable, "--cli", command] if getattr(sys, "frozen", False)
+            else [sys.executable, "-m", "outreach.cli", command])
     for key, val in (opts or {}).items():
         typ = spec.get(key)
         if typ is None:
@@ -318,7 +319,8 @@ def start_job(user, command: str, opts: dict) -> int:
             .returning(jobs.c.id)).scalar_one()
     log = open(ws / "jobs" / f"{job_id}.log", "w", encoding="utf-8")
     proc = subprocess.Popen(argv, cwd=ROOT, env=_env_for(user), stdout=log,
-                            stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL)
+                            stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
+                            creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0)
     with engine.begin() as c:
         c.execute(update(jobs).where(jobs.c.id == job_id).values(pid=proc.pid))
 

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+import sys
 from pathlib import Path
 
 from sqlalchemy import (
@@ -9,7 +10,7 @@ from sqlalchemy import (
     Text, UniqueConstraint, create_engine, event,
 )
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(sys._MEIPASS) if getattr(sys, "frozen", False) else Path(__file__).resolve().parent.parent
 DATA = Path(os.getenv("AGNOSTOS_DATA", ROOT / "data")).resolve()
 DATA.mkdir(parents=True, exist_ok=True)
 DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{(DATA / 'agnostos.db').as_posix()}")

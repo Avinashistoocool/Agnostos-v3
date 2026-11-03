@@ -7,3 +7,7 @@ __pycache__/
 !tests/fixtures/*.xlsx
 *.pending-status.json
 .venv/
+build/
+dist/
+*.spec
+node_modules/
