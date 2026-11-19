@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agnostos (web app): self-hosted research internship outreach | source and self-hosting guide</title>
+<meta name="description" content="Self-hosted web app for research internship outreach: find professors, draft emails, send paced from your inbox, handle replies. FastAPI. No public instance.">
+<link rel="canonical" href="https://avinashistoocool.github.io/Agnostos-v3/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Agnostos (web app)">
+<meta property="og:description" content="Self-hosted web app for research internship outreach: find professors, draft emails, send paced from your inbox, handle replies. FastAPI. No public instance.">
+<meta property="og:url" content="https://avinashistoocool.github.io/Agnostos-v3/">
+<meta property="og:image" content="https://avinashistoocool.github.io/Agnostos-v3/img/landing.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#10262e">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='6' y='14' width='52' height='36' rx='4' fill='%2310262e'/%3E%3Cpath d='M8 17l24 19 24-19' fill='none' stroke='%23e0663a' stroke-width='5'/%3E%3C/svg%3E">
+<style>
+:root{
+  --night:#10262e; --night2:#173641; --sea:#2c6e7f; --stamp:#c4532a; --stamp2:#e0663a;
+  --bg:#f2f4f2; --card:#ffffff; --ink:#15211f; --muted:#4c5b5a; --rule:#c9d3d1; --warn:#fff3df; --warnb:#b8641c;
+  --head:"Bahnschrift","DIN Alternate","Franklin Gothic Medium","Trebuchet MS",sans-serif;
+  --body:"Charter","Bitstream Charter","Sitka Text",Cambria,Georgia,serif;
+  --mono:"Cascadia Mono",Consolas,"SFMono-Regular",Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+body{margin:0;background:var(--bg);color:var(--ink);font:17.5px/1.62 var(--body)}
+a{color:var(--sea);text-underline-offset:3px}
+a:hover{color:var(--stamp)}
+:focus-visible{outline:3px solid var(--stamp2);outline-offset:2px}
+.skip{position:absolute;left:-999px}.skip:focus{left:8px;top:8px;background:#fff;color:#000;padding:6px 10px;z-index:9}
+.wrap{max-width:1100px;margin:0 auto;padding:0 22px}
+nav.top{background:var(--night);color:#e8efee}
+nav.top .wrap,footer .wrap.links{display:flex;flex-wrap:wrap;gap:6px 22px;align-items:center;padding-top:12px;padding-bottom:12px;font-family:var(--head);font-size:15px;letter-spacing:.02em}
+nav.top a{color:#e8efee;text-decoration:none}
+nav.top a:hover{color:#ffb592;text-decoration:underline}
+nav.top .sp{flex:1}
+header.hero{background:linear-gradient(180deg,var(--night) 0%,var(--night2) 100%);color:#eef4f3;padding:44px 0 56px;position:relative;overflow:hidden}
+header.hero::after{content:"";position:absolute;inset:auto 0 0 0;height:10px;background:repeating-linear-gradient(135deg,var(--stamp) 0 22px,#f2f4f2 22px 34px,var(--sea) 34px 56px,#f2f4f2 56px 68px)}
+.hero .grid{display:grid;grid-template-columns:1.25fr .9fr;gap:36px;align-items:center}
+@media (max-width:880px){.hero .grid{grid-template-columns:1fr}}
+.kicker{font-family:var(--head);text-transform:uppercase;letter-spacing:.14em;font-size:13px;color:#9fc3cb;margin:0 0 10px}
+h1{font-family:var(--head);font-weight:600;font-size:clamp(38px,6.4vw,66px);line-height:1.02;margin:0 0 16px}
+h1 span{display:block;font-size:.42em;font-weight:400;color:#bcd3d7;letter-spacing:.01em;margin-top:8px}
+.lede{font-size:19px;max-width:640px;margin:0 0 20px;color:#e3ecea}
+.chips{display:flex;flex-wrap:wrap;gap:8px;list-style:none;padding:0;margin:0 0 20px}
+.chips li{font-family:var(--mono);font-size:13px;color:#d9e6e4;border:1px solid #3d6370;padding:3px 10px;border-radius:2px}
+.stamp{display:inline-block;border:2px dashed #ffb592;color:#ffd9c6;padding:10px 14px;font-family:var(--head);font-size:15px;letter-spacing:.02em;max-width:640px}
+.stamp strong{color:#fff;letter-spacing:.06em;text-transform:uppercase;display:block;font-size:13px}
+.hero figure{margin:0;transform:rotate(1.2deg)}
+.hero figure img{width:100%;height:auto;display:block;border:8px solid #fff;box-shadow:0 18px 40px rgba(0,0,0,.35)}
+.hero figcaption{font-size:13px;color:#a9c2c6;margin-top:10px;transform:rotate(-1.2deg)}
+section{padding:50px 0;border-bottom:1px solid var(--rule)}
+h2{font-family:var(--head);font-weight:600;font-size:30px;margin:0 0 10px;letter-spacing:.01em}
+h2 .n{font-family:var(--mono);font-size:14px;color:var(--stamp);font-weight:400;margin-right:10px;vertical-align:middle}
+h3{font-family:var(--head);font-weight:600;font-size:20px;margin:26px 0 6px}
+p{max-width:780px}
+.alert{background:var(--warn);border:1px solid #edc995;border-left:6px solid var(--warnb);padding:16px 18px;max-width:880px;margin:18px 0}
+.alert b{font-family:var(--head);letter-spacing:.03em}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:18px 0}
+@media (max-width:880px){.cards{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--rule);padding:16px 18px;border-top:4px solid var(--sea)}
+.card h3{margin:0 0 4px;font-size:18px}
+.card p{margin:0;font-size:16px}
+ol.steps{list-style:none;padding:0;margin:18px 0;display:grid;grid-template-columns:repeat(4,1fr);gap:12px;counter-reset:s}
+@media (max-width:880px){ol.steps{grid-template-columns:1fr 1fr}}
+@media (max-width:520px){ol.steps{grid-template-columns:1fr}}
+ol.steps li{counter-increment:s;background:var(--card);border:1px solid var(--rule);padding:14px 16px;font-size:16px}
+ol.steps li::before{content:"0" counter(s);display:block;font-family:var(--mono);color:var(--stamp);font-size:13px}
+ol.steps b{font-family:var(--head);font-weight:600}
+.arch{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:stretch;gap:10px;margin:20px 0}
+.arch .box{background:var(--card);border:1px solid var(--rule);padding:14px 16px}
+.arch .box code{font-weight:600}
+.arch .box p{margin:6px 0 0;font-size:15.5px}
+.arch .arrow{align-self:center;font-family:var(--mono);color:var(--muted);font-size:22px}
+@media (max-width:880px){.arch{grid-template-columns:1fr}.arch .arrow{transform:rotate(90deg);justify-self:center}}
+pre,code{font-family:var(--mono);font-size:14px}
+code{background:#e6ecea;padding:0 4px;border-radius:2px}
+pre{background:var(--night);color:#e6efed;padding:14px 16px;overflow-x:auto;margin:10px 0 18px;line-height:1.5;max-width:100%}
+pre code{background:none;padding:0;color:inherit}
+pre .c{color:#8fb3ba}
+.table-wrap{overflow-x:auto;max-width:100%}
+table{border-collapse:collapse;width:100%;font-size:16px;margin:10px 0 18px;background:var(--card)}
+th,td{text-align:left;vertical-align:top;padding:9px 12px;border:1px solid var(--rule)}
+th{font-family:var(--head);font-weight:600;background:#e6ecea}
+.yes{color:#24664a;font-weight:600}.no{color:#9a3a1c;font-weight:600}
+.shots{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+@media (max-width:880px){.shots{grid-template-columns:1fr}}
+.shots figure{margin:0}
+.shots img{width:100%;height:auto;display:block;border:1px solid var(--rule);background:#fff}
+.shots figcaption{font-size:14px;color:var(--muted);margin-top:8px}
+ul.plain{padding-left:20px;max-width:820px}
+ul.plain li{margin:5px 0}
+.related{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:700px){.related{grid-template-columns:1fr}}
+.related a{display:block;background:var(--card);border:1px solid var(--rule);padding:14px 16px;text-decoration:none;color:var(--ink)}
+.related a:hover{border-color:var(--stamp)}
+.related b{font-family:var(--head);color:var(--sea);display:block}
+footer{background:var(--night);color:#cfe0de;padding:8px 0 30px}
+footer a{color:#e8efee;text-decoration:none}
+footer a:hover{text-decoration:underline;color:#ffb592}
+footer p{font-size:14px;margin:4px 0 0;color:#a9c2c6}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<nav class="top" aria-label="Site">
+  <div class="wrap">
+    <a href="https://avinashistoocool.github.io/">&larr; avinash</a>
+    <a href="https://avinashistoocool.github.io/projects/">All projects</a>
+    <span class="sp"></span>
+    <a href="#status">Status</a>
+    <a href="#run">Self-host</a>
+    <a href="https://github.com/Avinashistoocool/Agnostos-v3">Source &nearr;</a>
+  </div>
+</nav>
+
+<main id="main">
+<header class="hero">
+  <div class="wrap grid">
+    <div>
+      <p class="kicker">Agnostos v3 &middot; source and self-hosting guide</p>
+      <h1>Agnostos<span>the self-hosted web app for research internship outreach</span></h1>
+      <p class="lede">Agnostos v3 is a self-hosted web app for research internship outreach. It is built on the <a href="https://avinashistoocool.github.io/Agnostos-v2/" style="color:#ffcfb8">Agnostos command-line pipeline (v2)</a>. Each user signs up, uploads a resume, and adds their own mailbox and model key. From the browser they can find professors, verify emails, draft emails, send them paced from their own inbox, read replies and send follow-ups. A FastAPI server runs the v2 pipeline as a subprocess for each job.</p>
+      <ul class="chips" aria-label="Technologies">
+        <li>FastAPI</li><li>SQLAlchemy + Alembic</li><li>PostgreSQL / SQLite</li><li>Fernet encryption</li><li>Tailwind (prebuilt)</li><li>Groq / OpenAI</li><li>OpenAlex</li><li>WebView2 desktop</li>
+      </ul>
+      <p class="stamp"><strong>No public hosted instance</strong>There is no public Agnostos service to sign up for. This page describes the source code and how to run it yourself. Hosted deployment is paused, and live sending is off by default.</p>
+    </div>
+    <figure>
+      <img src="img/landing.jpg" width="1365" height="820" alt="The Agnostos v3 landing page served from the repository's web folder: a soft pastel layout with the headline 'Write to professors gently, and actually hear back.'">
+      <figcaption>The landing page in <code>web/index.html</code>, rendered locally from the repository.</figcaption>
+    </figure>
+  </div>
+</header>
+
+<section id="what">
+  <div class="wrap">
+    <h2><span class="n">01</span>What it does</h2>
+    <p>Agnostos v3 puts the v2 outreach pipeline behind an accounts-based web interface. Each user's resume, settings, credentials and job outputs stay in that user's own workspace.</p>
+    <ol class="steps">
+      <li><b>Discover</b><br>Find professors whose recent papers match your resume, using OpenAlex publication data.</li>
+      <li><b>Verify &amp; score</b><br>Check addresses, then score each match locally before any model call.</li>
+      <li><b>Draft</b><br>Write a personalised email for each match with your own Groq or OpenAI key.</li>
+      <li><b>Send &amp; reply</b><br>Send paced emails from your own mailbox, read replies and draft follow-ups.</li>
+    </ol>
+    <div class="cards">
+      <div class="card"><h3>Researchers library</h3><p>A database-backed contact list with add, edit, delete, search, pagination, and XLSX import and export. Imports never approve or send mail.</p></div>
+      <div class="card"><h3>Jobs dashboard</h3><p>Pipeline commands run as background jobs. Their logs stream to the browser, and you can cancel a running job.</p></div>
+      <div class="card"><h3>Desktop preview</h3><p>A Windows build that serves the same interface on <code>127.0.0.1</code> inside a WebView2 window. Sending and the scheduler are always disabled in this build.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="wrap">
+    <h2><span class="n">02</span>How it works</h2>
+    <div class="arch" role="group" aria-label="Architecture">
+      <div class="box"><code>web/</code><p>Landing page and dashboard. Plain HTML and JavaScript, with the compiled Tailwind CSS and fonts checked in. Works offline.</p></div>
+      <div class="arrow" aria-hidden="true">&rarr;</div>
+      <div class="box"><code>server/</code><p>FastAPI handles authentication, per-user workspaces, encrypted credentials, the job runner and the daily scheduler, with SQLAlchemy storage.</p></div>
+      <div class="arrow" aria-hidden="true">&rarr;</div>
+      <div class="box"><code>outreach/</code><p>The v2 command-line pipeline, unchanged. Each job runs it as a subprocess inside that user's workspace.</p></div>
+    </div>
+    <ul class="plain">
+      <li><strong>Credentials.</strong> SMTP and IMAP passwords and API keys are encrypted with Fernet using <code>APP_SECRET</code>. They are passed only into that user's job environment. Passwords are hashed with PBKDF2-SHA256.</li>
+      <li><strong>Allow-listed jobs.</strong> The UI can run only <code>profile</code>, <code>tls-check</code>, <code>stats</code>, <code>discover</code>, <code>verify</code>, <code>run</code>, <code>send</code>, <code>check-replies</code> and <code>replies</code>. Each command accepts a fixed set of flags. Values are type-checked, so raw arguments never reach the shell.</li>
+      <li><strong>Send gate.</strong> The API refuses <code>send</code> jobs, <code>replies --send</code> jobs and enabled schedules unless <code>AGNOSTOS_LIVE_SEND_ENABLED=true</code> is set deliberately. The Docker Compose file defaults it to <code>false</code>.</li>
+      <li><strong>Storage.</strong> Accounts, settings, sessions, job history, schedules and contacts use SQLAlchemy with Alembic migrations. Docker Compose provisions PostgreSQL 17. Local development keeps using <code>data/agnostos.db</code> (SQLite) unless <code>DATABASE_URL</code> is set. Each user's files live in <code>/data/users/&lt;id&gt;/</code>.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="status">
+  <div class="wrap">
+    <h2><span class="n">03</span>Status</h2>
+    <p>These statements are taken from the repository's README and <code>docs/database.md</code>.</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Part</th><th>State</th></tr></thead>
+      <tbody>
+        <tr><td>Accounts, settings, job history, Researchers library</td><td><span class="yes">Database-backed.</span> Uses SQLAlchemy and Alembic, with SQLite locally and PostgreSQL in Docker.</td></tr>
+        <tr><td>Pipeline sending and reply queues</td><td><span class="no">Still legacy.</span> Jobs use workbooks, and Replies uses a JSON queue. The contact library does not feed the sender.</td></tr>
+        <tr><td>Windows desktop preview</td><td><span class="yes">Available from source.</span> A CI artifact is built from <code>main</code>. It is a private preview without the v2 safety guarantees, and sending is disabled.</td></tr>
+        <tr><td>Hosted deployment</td><td><span class="no">Paused.</span> No public instance exists. The Oracle VM staging guide is kept as a historical plan.</td></tr>
+        <tr><td>Next milestone</td><td>Database-backed campaigns, drafts, approvals and send attempts; a durable worker queue; a shared React interface and a Tauri desktop client.</td></tr>
+      </tbody>
+    </table></div>
+    <div class="alert"><b>Not for live campaigns yet.</b> Do not expose v3 as a public mail service before the v2 features and safety fixes have been carried over and campaigns have been migrated. To send real outreach today, use the <a href="https://avinashistoocool.github.io/Agnostos-v2/">Agnostos v2 command-line tool</a> on your own computer.</div>
+
+    <h3>Screenshots</h3>
+    <div class="shots">
+      <figure><img src="img/landing.jpg" width="1365" height="820" loading="lazy" alt="Agnostos landing page with the headline 'Write to professors gently, and actually hear back'.">
+        <figcaption>Landing page (<code>web/index.html</code>).</figcaption></figure>
+      <figure><img src="img/dashboard-signin.jpg" width="1365" height="820" loading="lazy" alt="Agnostos dashboard sign-in card with email and password fields and a sign-in button.">
+        <figcaption>Dashboard sign-in (<code>web/app.html</code>), before an account exists. Both pages were captured from the repository's static files; no user data is shown.</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<section id="run">
+  <div class="wrap">
+    <h2><span class="n">04</span>Run it yourself</h2>
+    <h3>Quick start (local)</h3>
+<pre><code>start.cmd          <span class="c"># Windows</span>
+./start.sh         <span class="c"># macOS / Linux</span></code></pre>
+    <p>Then open <code>http://localhost:8000</code>. The scripts install <code>requirements.txt</code> and <code>server/requirements.txt</code> and start Uvicorn on port 8000. Note that they bind to <code>0.0.0.0</code>, so other machines on your network can reach the server.</p>
+    <h3>No-send preview of the Researchers library</h3>
+<pre><code>$env:AGNOSTOS_SCHEDULER_ENABLED = "false"
+python -m uvicorn server.app:app --host 127.0.0.1 --port 8000</code></pre>
+    <p>Open <code>http://localhost:8000/app.html</code>, sign in, and select <strong>Researchers</strong>. Disabling the scheduler does not block Pipeline jobs that you start manually.</p>
+    <h3>Windows desktop preview</h3>
+    <p>You need Python 3.13 (64-bit) and the Microsoft Edge WebView2 Runtime.</p>
+<pre><code>py -3.13 -m pip install -r desktop-requirements.txt
+py -3.13 desktop.py
+
+<span class="c"># distributable folder (needs Node.js/npm for the stylesheet build)</span>
+.\build-desktop.ps1 -Python "C:\Path\To\Python313\python.exe"
+.\dist\Agnostos\Agnostos.exe --health-check
+.\dist\Agnostos\Agnostos.exe</code></pre>
+    <p>Distribute the whole <code>dist\Agnostos</code> folder. The first launch creates <code>%LOCALAPPDATA%\Agnostos\</code>, which holds its own SQLite database, encryption key, uploads and job output. Back up that directory as a whole. Deleting its <code>.app_secret</code> makes the encrypted settings unreadable.</p>
+    <h3>Docker Compose with PostgreSQL</h3>
+<pre><code><span class="c"># .env (never commit it)</span>
+APP_SECRET=&lt;Fernet key; keep the original key when upgrading&gt;
+POSTGRES_PASSWORD=&lt;long random hex password&gt;
+AGNOSTOS_SCHEDULER_ENABLED=false
+AGNOSTOS_LIVE_SEND_ENABLED=false
+
+docker compose up -d --build</code></pre>
+    <p>The app is published only on <code>127.0.0.1:8000</code>, and PostgreSQL is not published to a host port. Run one API process only; the job runner and scheduler are not a distributed queue. Put an HTTPS reverse proxy in front before exposing the app.</p>
+    <h3>What each user needs</h3>
+    <ul class="plain">
+      <li>A model key. A Groq key is free. With OpenAI <code>gpt-5-mini</code>, the README estimates about $0.004 per draft.</li>
+      <li>A mailbox with an app password. For Gmail, turn on 2FA and create an app password.</li>
+      <li>A resume (PDF or DOCX), and optionally a CV PDF to attach.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="limits">
+  <div class="wrap">
+    <h2><span class="n">05</span>Limitations</h2>
+    <ul class="plain">
+      <li>No public instance exists, and hosted deployment is paused. Anyone who uses Agnostos v3 runs it on their own machine or server.</li>
+      <li>The sending path is the legacy v2 pipeline and does not include v2's later safety fixes. The desktop preview and the default Docker settings disable sending.</li>
+      <li>If you host it, users' mailbox passwords are stored on your server. Use a strong <code>APP_SECRET</code>, keep backups encrypted and publish a privacy note.</li>
+      <li>Every user's jobs run on one machine. A paced send of 40 emails takes 4 to 7 hours, so the host needs a process that stays up, a persistent disk and outbound SMTP. Serverless and sleeping free tiers do not work.</li>
+      <li>Each user sends from their own mailbox, so deliverability and rate limits apply per user. Keep <code>DAILY_SEND_CAP</code> at or below 40.</li>
+      <li>In the desktop preview, other processes on the same PC can reach the loopback HTTP service while the window is open.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="more">
+  <div class="wrap">
+    <h2><span class="n">06</span>Further reading</h2>
+    <div class="related">
+      <a href="https://github.com/Avinashistoocool/Agnostos-v3/blob/main/docs/database.md"><b>Database setup and migration &nearr;</b>What is database-backed, local preview, PostgreSQL deployment, moving from SQLite and validation.</a>
+      <a href="https://github.com/Avinashistoocool/Agnostos-v3/blob/main/docs/oracle-private-staging.md"><b>Oracle VM private staging (historical) &nearr;</b>A previous plan for a private VM reached over an SSH tunnel, with mail disabled. Do not use it for the desktop preview.</a>
+      <a href="https://avinashistoocool.github.io/Agnostos-v2/"><b>Agnostos v2 documentation</b>The command-line tool that v3 wraps: install guide, FAQ and how the pipeline works.</a>
+      <a href="https://github.com/Avinashistoocool/Agnostos-v3#readme"><b>README &nearr;</b>The full README, including desktop build details, deployment options and the SEO checklist.</a>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap links">
+    <a href="https://avinashistoocool.github.io/">&larr; avinash</a>
+    <a href="https://avinashistoocool.github.io/projects/">All projects</a>
+    <a href="https://github.com/Avinashistoocool/Agnostos-v3">Source &nearr;</a>
+  </div>
+  <div class="wrap"><p>Agnostos v3 is MIT-licensed. There is no public hosted instance; the screenshots were captured from the static files in the repository.</p></div>
+</footer>
+</body>
+</html>
